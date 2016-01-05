@@ -6,7 +6,7 @@
 /*   By: ddupart <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/01/05 17:09:32 by ddupart           #+#    #+#             */
-/*   Updated: 2016/01/05 19:28:28 by ddupart          ###   ########.fr       */
+/*   Updated: 2016/01/05 20:34:20 by ddupart          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,13 +40,13 @@ static char			*ft_gnl_join(char *s1, char *s2)
 	if (b)
 		ft_memcpy(dst + a, s2, b);
 	free(s1);
-	ft_bzero(s2, BUFF_SIZE + 1);
 	return (dst);
 }
 
 static int			ft_end_line(char *buf, char **line, char **stock)
 {
 	size_t		end;
+	char		*clr;
 
 	if (!(*stock = ft_gnl_join(*stock, buf)))
 		return (-1);
@@ -55,8 +55,10 @@ static int			ft_end_line(char *buf, char **line, char **stock)
 	{
 		if (!(*line = ft_strsub(*stock, 0, end)))
 			return (-1);
+		clr = *stock;
 		if (!(*stock = ft_strsub(*stock, end + 1, ft_strlen(*stock) - end + 1)))
 			return (-1);
+		free(clr);
 		return (1);
 	}
 	return (0);
@@ -81,21 +83,21 @@ int					get_next_line(int const fd, char **line)
 	char		*buf;
 	int			verif;
 
-	if (!(buf = ft_strnew(BUFF_SIZE + 1)) || fd < 0
+	if (!(buf = ft_strnew(BUFF_SIZE)) || fd < 0
 			|| (ret = read(fd, buf, 0)) < 0)
 		return (-1);
 	while ((ret = read(fd, buf, BUFF_SIZE)) > 0)
 	{
-		if ((verif = ft_end_line(buf, line, &stock)) == 1)
+		verif = ft_end_line(buf, line, &stock);
+		free(buf);
+		if (verif == 1)
 			return (1);
-		if (ret < 0)
-			return (-1);
+		buf = ft_strnew(BUFF_SIZE);
 	}
 	if ((verif = ft_end_line(buf, line, &stock)) == 0)
 	{
 		if (ft_strlen(stock) > 0)
 			verif = ft_no_nl(line, &stock);
-		free(buf);
 		ft_strdel(&stock);
 	}
 	return (verif);
